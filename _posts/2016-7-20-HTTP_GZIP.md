@@ -1,6 +1,6 @@
 ---                                                                                                                                                                                              
-layout: post
-title: HTTP_GZIP
+  layout: post
+  title: HTTP_GZIP
 ---
 
 # Web服务器处理HTTP压缩之gzip、deflate压缩
