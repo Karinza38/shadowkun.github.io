@@ -1,6 +1,6 @@
 ---
   layout: post
-  title: ZlibMenu 
+  title: ZLibMenu 
 ---
 
 # Zlib函数列表
