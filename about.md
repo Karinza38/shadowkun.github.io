@@ -4,12 +4,12 @@ title: About
 permalink: /about/
 ---
 
-Some information about you!
+I`m a bad boy.
 
 ### More Information
 
-A place to include any other types of information that you'd like to include about yourself.
+Trust me u do not wanna know more
 
 ### Contact me
 
-[email@domain.com](mailto:email@domain.com)
+[shadow2597758@gmail.com](mailto:shadow2597758@gmail.com)
