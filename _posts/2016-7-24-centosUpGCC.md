@@ -5,6 +5,74 @@
 
 # 简易安装
 
+## 第一部分：
+
+>升级到4.7
+
+```bash
+cd /etc/yum.repos.d
+wget http://people.centos.org/tru/devtools-1.1/devtools-1.1.repo 
+yum --enablerepo=testing-1.1-devtools-6 install devtoolset-1.1-gcc devtoolset-1.1-gcc-c++
+```
+
+这个将安装的文件放在了/opt/centos/devtoolset-1.1如果想要编辑器去处理的话，这样操作
+
+```bash
+export CC=/opt/centos/devtoolset-1.1/root/usr/bin/gcc  
+export CPP=/opt/centos/devtoolset-1.1/root/usr/bin/cpp
+export CXX=/opt/centos/devtoolset-1.1/root/usr/bin/c++
+```
+
+如果你想要gcc替换本地的，当然不是真的去替换，只要把他放在我们的/usrlocal/bin下面就好了，不必去管系统自带的【/usr/bin】。
+
+```bash
+ln -s /opt/rh/devtoolset-1.1/root/usr/bin/* /usr/local/bin/
+hash -r
+gcc --version
+```
+
+## 第二部分：
+
+>升级到4.8【这个应该是目前最新的啦，不过网上查的话已经到5.2啦，感觉落后一点比较稳，当然还有就是这个版本是新的里面使用最多的】
+
+```bash
+wget http://people.centos.org/tru/devtools-2/devtools-2.repo -O /etc/yum.repos.d/devtools-2.repo
+```
+
+或
+
+```bash
+cd /etc/yum.repos.d
+wget http://people.centos.org/tru/devtools-2/devtools-2.repo
+```
+
+然后
+
+```bash
+yum install devtoolset-2-gcc devtoolset-2-binutils devtoolset-2-gcc-c++
+```
+
+这个将安装的文件放在了/opt/rh/devtoolset-2如果想要编辑器去处理的话，这样操作
+
+```bash
+export CC=/opt/rh/devtoolset-2/root/usr/bin/gcc  
+export CPP=/opt/rh/devtoolset-2/root/usr/bin/cpp
+export CXX=/opt/rh/devtoolset-2/root/usr/bin/c++
+```
+
+如果你想要gcc替换本地的，当然不是真的去替换，只要把他放在我们的/usrlocal/bin下面就好了，不必去管系统自带的【/usr/bin】。
+
+```bash
+ln -s /opt/rh/devtoolset-2/root/usr/bin/* /usr/local/bin/
+hash -r
+gcc --version
+```
+
+这个两个部分的路径变了【请看这里】：http://people.centos.org/tru/devtools-2/readme
+
+参考资料：http://superuser.com/questions/381160/how-to-install-gcc-4-7-x-4-8-x-on-centos
+
+# 源码安装
 操作环境 CentOS6.5 64bit，原版本4.4.7，不能支持C++11的特性~，希望升级到4.8.2不能通过yum的方法升级，需要自己手动下载安装包并编译
 
 - 1.1 获取安装包并解压
