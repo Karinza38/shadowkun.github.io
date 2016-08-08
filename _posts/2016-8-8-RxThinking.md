@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Reactive_programming
+title: RxThinking
 ---
 
 #  Rx Thinking in Reactive_programming
