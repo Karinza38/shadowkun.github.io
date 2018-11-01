@@ -3,15 +3,15 @@
   title: The Maximum Entropy Principle
 ---
 
+# 图解最大熵原理（The Maximum Entropy Principle）(转载)
+
+> 这个“熵“并不是指热力学上熵的概念，而是由信息论男神克劳德·艾尔伍德·香农（Claude Elwood Shannon ）在1948年提出的“信息熵“，用来描述信息的不确定程度。
+
+[![img](https://wanghuaishi.files.wordpress.com/2017/02/022117_0108_themax1.jpg?w=840)](https://large_image/?url=http://p3.pstatp.com/large/167f0000447145854da6&index=1)
+
 
 # 原文
 > <https://wanghuaishi.wordpress.com/2017/02/21/%E5%9B%BE%E8%A7%A3%E6%9C%80%E5%A4%A7%E7%86%B5%E5%8E%9F%E7%90%86%EF%BC%88the-maximum-entropy-principle%EF%BC%89/>
-
-# 图解最大熵原理（The Maximum Entropy Principle）(转载)
-
-这个“熵“并不是指热力学上熵的概念，而是由信息论男神克劳德·艾尔伍德·香农（Claude Elwood Shannon ）在1948年提出的“信息熵“，用来描述信息的不确定程度。
-
-[![img](https://wanghuaishi.files.wordpress.com/2017/02/022117_0108_themax1.jpg?w=840)](https://large_image/?url=http://p3.pstatp.com/large/167f0000447145854da6&index=1)
 
 信息熵公式
 
