@@ -39,7 +39,7 @@
       <ul>
         {% for post in site.posts %}
           <li>
-            <a href="{{ post.url }}">{{ post.title }} 日期： {{ page.date | date: "%B %e, %Y" }}</a>
+            <a href="{{ post.url }}">{{ post.title }} 日期： {{ post.date | date: "%B %e, %Y" }}</a>
           </li>
         {% endfor %}
       </ul>
