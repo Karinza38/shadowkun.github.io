@@ -1,0 +1,204 @@
+# 窗口合成器 (Window Compositor)
+
+[原文来自网络，请点击跳转](https://xiaopengli89.github.io/posts/window-compositor/)
+原作者：https://xiaopengli89.github.io/
+感谢作者的梳理和分析，获益良多，这里收集备查。Thanks♪(･ω･)ﾉ
+
+## 读后感
+
+- 如果想要获得低延迟和性能一定要避免走窗口合成器（注：web全屏不经可以绕过窗口合成器还能够实现**硬件覆盖**）
+- 硬件覆盖在 VideoOverly 技术上带给我很大启发：像渲染游戏一样渲染内容并借助GPU硬件渲染UI来降低延迟实现**硬件覆盖**
+- 理解图层覆盖关系，当有透明度时画家算法失效的原因在于重绘同一个区域带来的开销
+
+窗口合成器，顾名思义即用于合成并显示多个窗口的系统组件。虽然图形操作系统诞生之初，并没有窗口合成器，但其相关的技术在图形计算领域是逐步发展并一脉相承的，今天想简单聊聊窗口合成器的来历与发展。
+
+
+## Macintosh
+
+Windows 1.0
+
+## 单任务系统
+早期的计算机或视频游戏机只有8bit的cpu和几k的内存，没有gpu和显存（部分设备具有显示芯片和视频内存，可以看成是现在gpu和显存的雏形），当然也不支持多任务，因此大多数的图形绘制都是由cpu在内存中完成。系统一般会把一段内存作为显示输出的帧缓冲区，程序只需要向帧缓冲区内写入像素数据（由于是单任务系统，程序都是运行在实模式下），画面就会出现在屏幕上。
+
+
+## 帧缓冲在内存中的表示
+受限于cpu性能和内存大小，无法分配太大的帧缓冲区，分辨率自然很低（比如 FC/NES 的分辨率为 256x224），甚至没有 Back Buffer，想要做出漂亮的界面，设计和开发人员往往需要一些奇思妙想，在有限的硬件下，做出“次时代”的画面，常用的手段：
+
+## 图块
+基于图块的渲染可以减少帧缓冲区大小和总线带宽压力；图块可以复用，对于有大量重复内容的画面，可以大幅度改善性能
+
+ 
+
+## 调色板
+使得低深度的像素表示可以显示更丰富的颜色（调色板类似今天的 sRGB，Adobe RGB, P3 等颜色空间概念）
+
+ 
+
+## 帧缓冲偏移
+可以实现卷轴/滚动效果
+
+
+## 活动块
+可以看成是动态的图块，通过配置一些属性，活动块在运行期间会产生变化，比如可以配置引用的图块、位置、翻转、层级、调色板等
+
+
+## 扫描线同步
+因为没有 Back Buffer，cpu 和 ppu 都可以写入视频内存，为了实现同步，通常 cpu 只在 vblank 阶段写入视频内存，然后 ppu 再去读取视频内存渲染（类似互斥锁）。有时候为了实现一些特殊效果，比如浮窗，可以在 ppu 扫描到特定扫描线时 cpu 修改 ppu 的状态，使得 ppu 临时切换渲染方式来实现。
+
+
+扫描线同步技术非常依赖于cpu的时钟频率和屏幕的刷新机制，程序需要准确地知道每个指令的时钟周期及显示器刷新的频率，换言之需要在实时系统上才可以实现。而今天我们使用的个人计算机基本都是非实时系统，经过高级语言的抽象和编译器的优化，我们无法准确地知道最后生成的机器指令是什么，多任务内核可以在几乎任何时候切换执行的进程/线程，再加上现代cpu的动态频率技术，程序几乎无法在时间上实现可预测性，因此扫描线同步技术今天已很少再使用。
+
+## 多任务/多窗口系统
+随着多任务系统的出现，每个应用程序都有自己的窗口（可能还不止一个），保护模式开始被引入，因此应用程序不再直接完整拥有屏幕的帧缓冲区，操作系统会根据每个窗口的大小、位置、层叠关系，跟踪其可视区域，为窗口的帧缓冲做映射，每个窗口绘制自己负责的那块帧缓冲，实现了同时显示多个窗口画面。
+
+
+此时的应用程序，即使是运行在窗口模式下（区别于全屏模式），也是直接写入帧缓冲区，因此当窗口发生的变化，比如移动、缩放等操作，系统就需要通知窗口及被它影响了可视区域的其他窗口需要重新绘制”脏区域“（比如Windows上的WM_PAINT事件），如果由于计算机速度慢，或者相关程序没有按预期的绘制，就会出现“损坏区域”。
+
+
+由于应用程序是直接写入帧缓冲区，新的颜色会直接覆盖原来的颜色，所以此时的窗口也无法支持半透明效果，不过带来的好处就是显示的延迟可以做到非常低，有些设备甚至可以低于1帧（16ms）。Apple IIe 的延迟之所以比现代计算机都低，除了键盘的扫描频率高之外（Apple IIe 556Hz vs 一般键盘 100 - 200Hz），直接写入帧缓冲的模式也是重要原因，这也可以解释为什么有些人会怀念过去在计算机上打字的感觉（这也是竞技类游戏会有全屏模式的原因）。
+
+## OSX
+2001年3月24日，Mac OSX 10.0（代号 Cheetah）发布，也是今天 macOS 的第一个版本，Mac OS X 10.0 作为下一代 Macintosh 操作系统，它引入了一个与 Mac OS 9 以及所有以前的 Apple 操作系统完全分离的全新代码库，并拥有一个新的类 Unix 内核 Darwin，全新的 Aqua UI，OpenGL，半透明窗口及柔和的窗口阴影，这些都是基于一个叫 Quartz Compositor 的窗口合成器实现的，应用程序不是直接绘制到屏幕上，而是绘制到屏幕外缓冲区，最后由窗口合成器统一合成并绘制到屏幕上。
+
+
+最初的 Quartz Compositor 是由 CPU 实现绘制和合成，导致性能表现非常糟糕，之后2002年8月发布的 10.2 版本，实现了在 GPU 中合成，情况才有所改善。Quartz Compositor 可以说是现代窗口合成器的鼻祖，微软在 Windows Vista 中可选地引入了 DWM（桌面窗口管理器）以实现 Aero 特效（Windows 8以后窗口程序强制使用 DWM 合成），受限于当时的硬件，Windows Vista 的卡顿被大多数人诟病。
+
+
+Windows 2000 中引入了一个分层窗口(WS_EX_LAYERED)，可以实现半透明效果，同时覆盖在分层窗口之上的窗口发生了变化，系统也不会通知分层窗口需要重新绘制，因为系统会存储分层窗口之前的画面，并自动再画上去，分层窗口可以说是 DWM 的前身。
+
+## 现代窗口合成器
+实际上，除了半透明、阴影、存储窗口画面外，现代窗口合成器集成了更多的功能，比如淡入淡出、移动、缩放、旋转、3D、动画、裁剪等，除了用于系统交互外，也提供了相应的接口给应用程序，比如 Mac OS 10.5 引入的 Core Animation，Windows 8 引入的 DirectComposition。
+
+ 
+ 
+ 
+ 
+
+而当下通常的 GUI 程序内部本身也会有图层的概念，修改一个图层只需要重新绘制一个特定的图层，其他的图层不需要重新绘制，最后合成到窗口上，就像多个窗口合成到桌面上一样。因此大多数 GUI 框架内部会包含一个图层的合成器，有些框架甚至会允许你直接使用系统的合成器来做窗口内的合成，比如 Windows 上的 DirectComposition 就允许开发者实现窗口内的图层合成（仅限应用程序使用 DirectX 渲染）。
+
+ 
+
+WebRender 中允许你配置使用内置的合成器或者系统原生的合成器来合成窗口内的图层。
+
+/// how WR compositing will operate.
+pub enum CompositorConfig {
+    /// Let WR draw tiles via normal batching. This requires no special OS support.
+    Draw {
+        /// If this is zero, a full screen present occurs at the end of the
+        /// frame. This is the simplest and default mode. If this is non-zero,
+        /// then the operating system supports a form of 'partial present' where
+        /// only dirty regions of the framebuffer need to be updated.
+        max_partial_present_rects: usize,
+        /// If this is true, WR must draw the previous frames' dirty regions when
+        /// doing a partial present. This is used for EGL which requires the front
+        /// buffer to always be fully consistent.
+        draw_previous_partial_present_regions: bool,
+        /// A client provided interface to a compositor handling partial present.
+        /// Required if webrender must query the backbuffer's age.
+        partial_present: Option<Box<dyn PartialPresentCompositor>>,
+    },
+    /// Use a native OS compositor to draw tiles. This requires clients to implement
+    /// the Compositor trait, but can be significantly more power efficient on operating
+    /// systems that support it.
+    Native {
+        /// A client provided interface to a native / OS compositor.
+        compositor: Box<dyn Compositor>,
+    }
+}
+
+## Copy
+Windows 下部分软件会使用子窗口来模拟控件，其实也就是在利用窗口合成器的能力来合成窗口内的图层，不过鉴于性能优化，使用 DirectComposition 来做合成会更好。
+
+## 代价和相关技术
+因为引入了窗口合成器后，应用程序不再是直接绘制到屏幕的帧缓冲区，需要窗口合成器将所有的窗口离屏缓冲区按照合成规则绘制到屏幕缓冲区，这必然引入更高的延迟、更多的内存/显存占用、更多计算资源（CPU、GPU）占用，尤其是在客户机硬件性能低，显示分辨率高的场景下。
+
+
+## 全屏
+为了满足一些场景的需求（延迟、性能、资源占用），操作系统通常允许全屏应用不经过窗口合成器，直接绘制到屏幕缓冲区，比方3A游戏通常默认以全屏模式运行。
+
+The DWM automatically disables composition when an application attempts to draw directly to the primary display surface. Composition will be disabled until the primary device surface is released by that application.
+
+
+## 半透明窗口
+值得一说的是半透明窗口，在三维计算机图形学中，对于层叠窗口/物体的绘制，一般有2种方式来绘制，其中之一是古老的画家算法，即以从远到近的顺序绘制，是处理可见性问题的一种解决方法， 这样可以不管是透明还是非透明物体，都可以正确地绘制出来。
+
+
+但是画家算法存在一个明显的缺陷，那就是有些像素被重复地绘制了好多次，往往结果只和最后一次绘制有关，这通常发生在非透明物体的绘制上。
+
+现代3D光栅化引擎带来了深度缓冲技术（Z-buffer），它可以存储每个像素的深度值，因此利用深度缓冲区的相关绘制算法出现了，比如 “深度剥离（Depth Peeling）”算法，利用它，在最好的情况下，每个像素只会被绘制一次，同时每个物体不再要求按照远近顺序渲染（这对于批量渲染大量多边形的游戏非常重要）。这里的最好情况，就是指所有物体都不透明的情况下，因此大量的大面积半透明窗口，会给窗口合成器带来非常大的压力。
+
+这也是有些图形渲染库为什么会提供非透明的特别设置，因为这对于性能优化非常重要。
+
+/// Whether this image is opaque, or has an alpha channel. Avoiding blending
+/// for opaque surfaces is an important optimization.
+const IS_OPAQUE = 1;
+Copy
+
+## Z-buffer
+在 Windows 上，如果设备性能不够，可以通过关闭透明、阴影等窗口效果设置来改善窗口的合成性能。
+
+ 
+
+一些 Linux 开发者喜欢使用平铺式窗口管理器（比如i3），也是因为对系统的性能开销影响更小。
+
+
+## 零拷贝帧缓冲
+由于应用程序与窗口合成器是分离的进程，对于应用程序绘制好的帧缓冲，需要提交给窗口合成器，早先的方式是拷贝（即 Blt Mode Present)，这显然多了非必要的开销。随着多缓冲区技术的出现，发展出了零拷贝帧缓冲技术，对于帧缓冲大于等于2的应用程序，可以和窗口合成器共享缓冲区，绘制好的帧缓冲和前一帧的帧缓冲交换即完成了提交。比如 window7 开始引入的 Direct3D 9EX Flip Mode Presentation 和由此发展而来的 windows8 的 DXGI flip model。
+
+
+多进程共享显存对象依靠显示驱动模型的全局名称空间，类似多进程的内存共享技术，不过任务管理器会重复统计相关的显存使用，导致进程的显存使用总和会超过实际 GPU 显存使用量。
+
+## 硬件覆盖（平面）
+就和很多性能优化技术路径一样，把部分功能实现由硬件来完成，硬件覆盖就像 gpu 内部的合成器，我们可以把某些窗口内容直接提交给 gpu，利用 gpu 内部的合成器来实现画面的叠加，这通常应用在视频回放技术上。
+
+
+最早的实践可能是用于叠加鼠标光标的专用电路（Hardware Cursor），这样移动鼠标光标就不需要重新提交帧缓冲区，延迟也可以大大降低。
+
+某些视频播放器即使在窗口模式下播放也没有视频合成器的开销（浏览器内的 video 通常也会使用硬件覆盖），如果一个视频没有被别的窗口遮挡，那么DWM就可以把视频单独放到一个平面，不同的平面输出的分辨率及帧率也不需要保持一致，如果视频覆盖层上需要覆盖其他 UI，要么 UI 直接画到视频帧的缓冲内，要么也需要一个硬件覆盖。
+
+
+## 窗口模式下视频回放
+ 
+
+视频回放窗口上覆盖了其他的普通窗口就无法使用硬件覆盖了
+ 
+
+Intel 图形控制面板中对 Video Overlay 的设置
+ 
+
+Hardware Cursor in Unreal Engine 4
+现代 gpu 通常都支持硬件覆盖，比如 windows7 引入了 Hardware Overlay Support，但有诸多限制，比如每个设备最多只支持一个覆盖，不支持缩放、镜像、混合（实现半透明）、多重采样，windows 8.1 又引入了 Multiplane overlay support（多平面硬件覆盖） , 不仅支持了多个覆盖，对覆盖的缩放、镜像、混合等也提供了支持。
+
+
+## 总结
+其实我们从最早的单任务系统的图形绘制技术就已经可以看到窗口合成器的影子，像图块、帧缓冲偏移、活动块等技术，自从窗口合成器首次被 Mac OSX 引入，如今窗口合成器已经成了图形操作系统必不可少的系统组件，大幅改善了图形桌面的交互体验。不过也可以看到它同时带了诸多的挑战（尤其是性能、系统复杂度），时至今日，窗口合成器带来的代价依然没有被如今的软硬件完全解决，比如延迟、低性能设备下窗口合成器过高的资源占用等，不过就像所有的技术迭代一样，希望有一天这些问题都可以被解决。
+
+我们从了解窗口合成器技术的发展历程中，既可以借鉴相关优秀的设计到我们自己的软件构建中，同时也可以灵活运用相关技术和取舍，去尽量规避窗口合成器带来的代价。
+
+What do Quartz and Aqua mean to the industry as a whole? To paraphrase Steve Jobs once again, it’s very clear to me that every computer will work this way someday. No, I don’t mean that the world’s computer screens will be covered with candied window widgets and genie animations a few years from now. I mean that third-generation display layers are clearly the future. […] Apple is the first of the major players to bring this to market…albeit in a a fashion that is not likely to appeal to anyone but Apple’s core market. I expect the rest of the industry to follow in a more conventional fashion in a few years.
+
+Quartz 和 Aqua 对整个行业意味着什么？ 再次用史蒂夫·乔布斯的话来说，我很清楚每台计算机总有一天会以这种方式工作。 不，我并不是说几年后世界上的计算机屏幕将被糖果窗口小部件和精灵动画所覆盖。 我的意思是第三代显示层显然是未来。 […] Apple 是第一个将其推向市场的主要参与者……尽管这种方式不太可能吸引除 Apple 的核心市场之外的任何人。 我预计该行业的其他成员将在几年内以更传统的方式效仿。
+
+## 参考
+The compositor is evil
+Computer latency: 1977-2017
+计算机操作系统界面发展史
+The Ultimate Game Boy Talk (33c3)
+基于图块渲染
+冷知识：windows-xp-窗口残影之谜
+Mac OS X 10.0
+Quartz Compositor
+Layered Windows
+Here’s to the crazy ones: a decade of Mac OS X reviews
+DirectComposition
+深度缓冲
+画家算法
+Depth peeling
+Order-independent transparency
+Direct3D 9EX Flip Mode Presentation
+DXGI flip model
+Hardware overlay
+Hardware Overlay Support
+Multiplane overlay support
+What is hardware cursor and how does it work?
+GPUs in the task manager
