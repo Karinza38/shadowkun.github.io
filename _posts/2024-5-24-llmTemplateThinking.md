@@ -64,7 +64,7 @@ By following these steps, students can learn how to multiply numbers like 128 * 
 ```
 当然，限于手头的实验环境，我无法追踪此刻的 LLM 有多少规模的权重被激活，这个 A/B Test 还是很容易的，只需要把 Template 中的 Example 等信息去掉即可。如果您感兴趣，可以使用后文中介绍的这些思维模型来提示 LLM 以获得不同的 Result。
 
-## 教学设计模型和理论历史：
+## [教学设计模型和理论历史](https://elearningindustry.com/top-instructional-design-theories-models-next-elearning-course)：
  - 1903年——伊万·巴甫洛夫在对狗的消化系统进行研究时发现了经典条件反射理论。
  - 1910 年-桑代克提出了基于主动学习原则的定律和联结主义理论。
  - 1922 年-马克斯·韦特海默、库尔特·科夫卡和沃尔夫冈·科勒创立了格式塔心理学。
