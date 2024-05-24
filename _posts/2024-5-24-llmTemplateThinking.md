@@ -1,6 +1,6 @@
 ---
 layout: post
-title: AbTest 
+title: llmTemplateThinking 
 ---
 
 # 随笔：思维模型对机器学习 LLM 应用的影响是什么？
